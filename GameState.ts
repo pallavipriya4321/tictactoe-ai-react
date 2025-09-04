@@ -16,26 +16,30 @@ export const newGame: () => GameState = () => {
   };
 };
 
-export const showGameState = (gameState: GameState) => {
+export const getGameStateString = (gameState: GameState) => {
   const state = gameState.state;
+  let gameStateString = "";
   const replaceNull = (cell: GameCell) => {
     return cell === null ? " " : cell;
   };
   const showLine = () => {
-    console.log("-----------");
+    gameStateString += "\n-----------";
   };
   const showRow = (row: 0 | 1 | 2) => {
     showLine();
-    console.log(
-      ` ${replaceNull(state[row][0])} | ${replaceNull(
-        state[row][1],
-      )} | ${replaceNull(state[row][2])} `,
-    );
+    gameStateString += `\n ${replaceNull(state[row][0])} | ${replaceNull(
+      state[row][1],
+    )} | ${replaceNull(state[row][2])} `;
   };
   showRow(0);
   showRow(1);
   showRow(2);
   showLine();
+  return gameStateString;
+};
+
+export const showGameState = (gameState: GameState) => {
+  console.log(getGameStateString(gameState));
 };
 
 export const registerMove = (
