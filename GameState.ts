@@ -1,6 +1,10 @@
 type GameCell = "O" | "X" | null;
+type GameCellNotNull = "O" | "X";
 type GameRow = [GameCell, GameCell, GameCell];
 export type GameState = { state: [GameRow, GameRow, GameRow]; turn: "X" | "O" };
+
+const gameIndices = [0, 1, 2] as const;
+
 export const newGame: () => GameState = () => {
   return {
     state: [
@@ -37,9 +41,10 @@ export const showGameState = (gameState: GameState) => {
 export const registerMove = (
   currState: GameState,
   position: [1 | 2 | 3, 1 | 2 | 3],
-  move: "X" | "O"
+  move: "X" | "O",
 ) => {
-  const [row, col] = [position[0] - 1, position[1] - 1];
+  const row = (position[0] - 1) as 0 | 1 | 2;
+  const col = (position[1] - 1) as 0 | 1 | 2;
   if (currState.state[row][col] !== null) {
     throw new Error("Invalid Move");
   }
@@ -55,7 +60,7 @@ export const registerMove = (
       [currState.state[1][0], currState.state[1][1], currState.state[1][2]],
       [currState.state[2][0], currState.state[2][1], currState.state[2][2]],
     ] as [GameRow, GameRow, GameRow],
-    turn: (currState.turn === "X" ? "O" : "X") as "X" | "O",
+    turn: (currState.turn === "X" ? "O" : "X") as GameCellNotNull,
   };
 };
 
@@ -72,7 +77,7 @@ export const getGameStatus: (gameState: GameState) =>
       state[row][1] === state[row][2] &&
       state[row][0] !== null
     ) {
-      return state[row][0] as "X" | "O";
+      return state[row][0] as GameCellNotNull;
     }
     return null;
   };
@@ -82,7 +87,7 @@ export const getGameStatus: (gameState: GameState) =>
       state[1][col] === state[2][col] &&
       state[0][col] !== null
     ) {
-      return state[0][col] as "X" | "O";
+      return state[0][col] as GameCellNotNull;
     }
   };
   const checkDiag = () => {
@@ -91,25 +96,28 @@ export const getGameStatus: (gameState: GameState) =>
       state[1][1] === state[2][2] &&
       state[0][0] !== null
     ) {
-      return state[0][0] as "X" | "O";
+      return state[0][0] as GameCellNotNull;
     }
     if (
       state[0][2] === state[1][1] &&
       state[1][1] === state[2][0] &&
       state[0][2] !== null
     ) {
-      return state[0][2] as "X" | "O";
+      return state[0][2] as GameCellNotNull;
     }
     return null;
   };
+  gameIndices.forEach((row) => {
+    const winner = checkRow(row);
+    if (winner !== null) return { winner };
+  });
 
-  if (checkRow(0) !== null) return { winner: checkRow(0) };
-  if (checkRow(1) !== null) return { winner: checkRow(1) };
-  if (checkRow(2) !== null) return { winner: checkRow(2) };
-  if (checkCol(0) !== null) return { winner: checkCol(0) };
-  if (checkCol(1) !== null) return { winner: checkCol(1) };
-  if (checkCol(2) !== null) return { winner: checkCol(2) };
-  if (checkDiag() !== null) return { winner: checkDiag() };
+  gameIndices.forEach((col) => {
+    const winner = checkCol(col);
+    if (winner !== null) return { winner };
+  });
+  const winner = checkDiag();
+  if (winner !== null) return { winner };
 
   if (
     state[0].includes(null) ||
