@@ -157,3 +157,34 @@ export const generateNextMoves = (gameState: GameState) => {
   }
   return nextMoves;
 };
+
+const getScore: (gameState: GameState, turn: GameCellNotNull) => number = (
+  gameState: GameState,
+  turn: GameCellNotNull,
+) => {
+  const status = getGameStatus(gameState);
+  if ("winner" in status) {
+    if (status.winner === turn) {
+      return 10;
+    } else {
+      return -10;
+    }
+  }
+  if ("status" in status && status.status === "DRAW") {
+    return 0;
+  }
+  return generateNextMoves(gameState)
+    .map((m) => getScore(m, turn === "X" ? "O" : "X"))
+    .reduce((a, b) => a + b, 0);
+};
+
+export const findBestNextMove: (gameState: GameState) => GameState = (
+  gameState: GameState,
+) => {
+  const possibleNextMoves = generateNextMoves(gameState);
+  const scores = possibleNextMoves.map((moveState) => {
+    return getScore(moveState, moveState.turn);
+  });
+  console.log({ scores });
+  return gameState;
+};
