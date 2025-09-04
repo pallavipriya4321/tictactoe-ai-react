@@ -17,26 +17,21 @@ export const showGameState = (gameState: GameState) => {
   const replaceNull = (cell: GameCell) => {
     return cell === null ? " " : cell;
   };
-  console.log("-----------");
-
-  console.log(
-    ` ${replaceNull(state[0][0])} | ${replaceNull(state[0][1])} | ${replaceNull(
-      state[0][2]
-    )} `
-  );
-  console.log("-----------");
-  console.log(
-    ` ${replaceNull(state[1][0])} | ${replaceNull(state[1][1])} | ${replaceNull(
-      state[1][2]
-    )} `
-  );
-  console.log("-----------");
-  console.log(
-    ` ${replaceNull(state[2][0])} | ${replaceNull(state[2][1])} | ${replaceNull(
-      state[2][2]
-    )} `
-  );
-  console.log("-----------");
+  const showLine = () => {
+    console.log("-----------");
+  };
+  const showRow = (row: 0 | 1 | 2) => {
+    showLine();
+    console.log(
+      ` ${replaceNull(state[row][0])} | ${replaceNull(
+        state[row][1],
+      )} | ${replaceNull(state[row][2])} `,
+    );
+  };
+  showRow(0);
+  showRow(1);
+  showRow(2);
+  showLine();
 };
 
 export const registerMove = (
