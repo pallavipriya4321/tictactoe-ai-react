@@ -28,7 +28,7 @@ export const getGameStateString = (gameState: GameState) => {
   const showRow = (row: 0 | 1 | 2) => {
     showLine();
     gameStateString += `\n ${replaceNull(state[row][0])} | ${replaceNull(
-      state[row][1]
+      state[row][1],
     )} | ${replaceNull(state[row][2])} `;
   };
   showRow(0);
@@ -45,7 +45,7 @@ export const showGameState = (gameState: GameState) => {
 export const registerMove = (
   currState: GameState,
   position: [1 | 2 | 3, 1 | 2 | 3],
-  move: "X" | "O"
+  move: "X" | "O",
 ) => {
   const row = (position[0] - 1) as 0 | 1 | 2;
   const col = (position[1] - 1) as 0 | 1 | 2;
@@ -56,16 +56,10 @@ export const registerMove = (
   if (currState.turn !== move) {
     throw new Error("Invalid Move");
   }
-
-  currState.state[row][col] = move;
-  return {
-    state: [
-      [currState.state[0][0], currState.state[0][1], currState.state[0][2]],
-      [currState.state[1][0], currState.state[1][1], currState.state[1][2]],
-      [currState.state[2][0], currState.state[2][1], currState.state[2][2]],
-    ] as [GameRow, GameRow, GameRow],
-    turn: (currState.turn === "X" ? "O" : "X") as GameCellNotNull,
-  };
+  const newState = structuredClone(currState);
+  newState.state[row][col] = move;
+  newState.turn = (currState.turn === "X" ? "O" : "X") as GameCellNotNull;
+  return newState;
 };
 
 export const getGameStatus: (gameState: GameState) =>
@@ -139,4 +133,27 @@ export const getGameStatus: (gameState: GameState) =>
   }
 
   return { status: "DRAW" };
+};
+
+export const getGameStateHash = (gameState: GameState) => {
+  const { state } = gameState;
+  return `${state[0][0]}${state[0][1]}${state[0][2]}${state[1][0]}${state[1][1]}${state[1][2]}${state[2][0]}${state[2][1]}${state[2][2]}${gameState.turn}`;
+};
+
+export const generateNextMoves = (gameState: GameState) => {
+  const nextMoves: GameState[] = [];
+  const { state, turn } = gameState;
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if ((state[i] as GameRow)[j] === null) {
+        const newState = registerMove(
+          gameState,
+          [(i + 1) as 1 | 2 | 3, (j + 1) as 1 | 2 | 3],
+          turn,
+        );
+        nextMoves.push(newState);
+      }
+    }
+  }
+  return nextMoves;
 };

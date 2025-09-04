@@ -28,7 +28,7 @@ const play = async () => {
         currentState = registerMove(
           currentState,
           [xpos as 1 | 2 | 3, ypos as 1 | 2 | 3],
-          currentState.turn
+          currentState.turn,
         );
 
         const gameStatus = getGameStatus(currentState);
