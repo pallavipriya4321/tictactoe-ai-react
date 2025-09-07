@@ -1,6 +1,5 @@
 import {
   findBestNextMove,
-  gameIndices,
   getGameStatus,
   newGame,
   registerMove,
