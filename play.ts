@@ -1,4 +1,5 @@
 import {
+  findBestNextMove,
   gameIndices,
   getGameStatus,
   newGame,
@@ -6,10 +7,18 @@ import {
   showGameState,
 } from "./GameState";
 
-import { input } from "@inquirer/prompts";
+import { input, confirm } from "@inquirer/prompts";
 
 const play = async () => {
   let currentState = newGame();
+  const playerGoesFirst = await confirm({
+    message: "Do you want to go first?",
+  });
+  if (!playerGoesFirst) {
+    currentState = findBestNextMove(currentState);
+  } else {
+    currentState.turn = "X";
+  }
   while (true) {
     console.log("Welcome to Tic Tac Toe!");
     while (true) {
@@ -28,7 +37,7 @@ const play = async () => {
         currentState = registerMove(
           currentState,
           [xpos as 1 | 2 | 3, ypos as 1 | 2 | 3],
-          currentState.turn,
+          currentState.turn
         );
 
         const gameStatus = getGameStatus(currentState);
@@ -39,6 +48,20 @@ const play = async () => {
           return;
         }
         if ("status" in gameStatus && gameStatus.status === "DRAW") {
+          showGameState(currentState);
+          console.log(`Game is a draw!`);
+          return;
+        }
+        currentState = findBestNextMove(currentState);
+
+        const gameStatus2 = getGameStatus(currentState);
+
+        if ("winner" in gameStatus2) {
+          showGameState(currentState);
+          console.log(`Player ${gameStatus2.winner} wins!`);
+          return;
+        }
+        if ("status" in gameStatus2 && gameStatus2.status === "DRAW") {
           showGameState(currentState);
           console.log(`Game is a draw!`);
           return;

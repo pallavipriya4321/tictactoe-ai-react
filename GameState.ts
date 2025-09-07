@@ -28,7 +28,7 @@ export const getGameStateString = (gameState: GameState) => {
   const showRow = (row: 0 | 1 | 2) => {
     showLine();
     gameStateString += `\n ${replaceNull(state[row][0])} | ${replaceNull(
-      state[row][1],
+      state[row][1]
     )} | ${replaceNull(state[row][2])} `;
   };
   showRow(0);
@@ -45,7 +45,7 @@ export const showGameState = (gameState: GameState) => {
 export const registerMove = (
   currState: GameState,
   position: [1 | 2 | 3, 1 | 2 | 3],
-  move: "X" | "O",
+  move: "X" | "O"
 ) => {
   const row = (position[0] - 1) as 0 | 1 | 2;
   const col = (position[1] - 1) as 0 | 1 | 2;
@@ -149,7 +149,7 @@ export const generateNextMoves = (gameState: GameState) => {
         const newState = registerMove(
           gameState,
           [(i + 1) as 1 | 2 | 3, (j + 1) as 1 | 2 | 3],
-          turn,
+          turn
         );
         nextMoves.push(newState);
       }
@@ -158,33 +158,64 @@ export const generateNextMoves = (gameState: GameState) => {
   return nextMoves;
 };
 
+let getScoreCallCount = 0;
+const getScoreCache = new Map<string, number>();
+
 const getScore: (gameState: GameState, turn: GameCellNotNull) => number = (
   gameState: GameState,
-  turn: GameCellNotNull,
+  turn: GameCellNotNull
 ) => {
+  const gameStateHash = getGameStateHash(gameState);
+  if (getScoreCache.has(gameStateHash)) {
+    return getScoreCache.get(gameStateHash)!;
+  }
+
+  getScoreCallCount++;
+  // console.log(getScoreCallCount);
+
   const status = getGameStatus(gameState);
   if ("winner" in status) {
-    if (status.winner === turn) {
+    if (status.winner === "O") {
+      getScoreCache.set(gameStateHash, 10);
       return 10;
     } else {
+      getScoreCache.set(gameStateHash, -10);
       return -10;
     }
   }
   if ("status" in status && status.status === "DRAW") {
+    getScoreCache.set(gameStateHash, 0);
     return 0;
   }
-  return generateNextMoves(gameState)
-    .map((m) => getScore(m, turn === "X" ? "O" : "X"))
-    .reduce((a, b) => a + b, 0);
+  const nextMoves = generateNextMoves(gameState);
+  const nextTurn = turn === "X" ? "O" : "X";
+  if (turn === "O") {
+    let score = -Infinity;
+    for (const move of nextMoves) {
+      score = Math.max(score, getScore(move, nextTurn));
+    }
+    getScoreCache.set(gameStateHash, score);
+    return score;
+  } else {
+    let score = Infinity;
+    for (const move of nextMoves) {
+      score = Math.min(score, getScore(move, nextTurn));
+    }
+    getScoreCache.set(gameStateHash, score);
+    return score;
+  }
 };
 
 export const findBestNextMove: (gameState: GameState) => GameState = (
-  gameState: GameState,
+  gameState: GameState
 ) => {
   const possibleNextMoves = generateNextMoves(gameState);
   const scores = possibleNextMoves.map((moveState) => {
     return getScore(moveState, moveState.turn);
   });
-  console.log({ scores });
-  return gameState;
+  const bestScore = Math.max(...scores);
+  const bestMoveIndex = scores.indexOf(bestScore);
+  const bestMove = possibleNextMoves[bestMoveIndex];
+  if (!bestMove) throw new Error("No best move found");
+  return bestMove;
 };
